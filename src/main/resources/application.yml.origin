@@ -1,0 +1,20 @@
+---
+  server:
+    port: <PORT>
+  spring:
+    datasource:
+      url: db_url
+      username: db_username
+      password: db_password
+      driver-class-name: db_driver
+    mvc:
+      hidden-method:
+        filter:
+          enabled: true
+    jpa:
+      properties:
+        hibernate:
+          dialect: hibernate_dialect
+          show_sql: true
+    flyway:
+      enabled: false
