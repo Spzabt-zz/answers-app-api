@@ -3,7 +3,6 @@ package org.bohdan.answers.api.validator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.store.entities.UserEntity;
 import org.bohdan.answers.store.repositories.UserEntityRepository;
 import org.springframework.stereotype.Component;
@@ -36,9 +35,15 @@ public class UserEntityValidator implements Validator {
             errors.rejectValue("password", "", "Passwords doesn't match");
         }
 
-        if (userEntityRepository.findByFullName(person.getFullName()).isPresent()) {
+        if (userEntityRepository.findByUsername(person.getUsername()).isPresent()) {
             //throw new BadRequestException("Such name already in the system.");
-            errors.rejectValue("full_name", "", "Such name already in the system");
+            errors.rejectValue("username", "", "Such name already in the system");
         }
+
+        // TODO: email validation
+        /*if (userEntityRepository.findByUsername(person.getUsername()).isPresent()) {
+            //throw new BadRequestException("Such name already in the system.");
+            errors.rejectValue("username", "", "Such name already in the system");
+        }*/
     }
 }

@@ -22,6 +22,7 @@ import java.util.Objects;
 public class RegistrationService {
 
     UserEntityRepository userEntityRepository;
+
     PasswordEncoder passwordEncoder;
 
     @Transactional

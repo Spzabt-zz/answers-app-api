@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.bohdan.answers.api.controllers.helpers.ControllerHelper;
 import org.bohdan.answers.api.dto.ChatDto;
 import org.bohdan.answers.api.dto.converters.ChatDtoConverter;
+import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.store.entities.ChatEntity;
 import org.bohdan.answers.store.entities.UserEntity;
 import org.bohdan.answers.store.repositories.ChatRepository;
@@ -37,8 +38,12 @@ public class ChatController {
     public static final String GET_CHAT = "/api/v1/chats/{chat_id}";
 
     @PutMapping(CREATE_CHAT)
-    public ResponseEntity<ChatDto> createOrUpdateChat(@RequestParam(name = "user_id") Long userId) {
+    public ResponseEntity<ChatDto> createChat(@RequestParam(name = "user_id") Long userId) {
         UserEntity user = controllerHelper.getUserOrThrowException(userId);
+
+        ChatEntity userChat = user.getChat();
+        if (userChat != null)
+            throw new BadRequestException(String.format("User \"%s\" already have a chat.", user.getId()));
 
         ChatEntity chat = chatRepository.save(
                 ChatEntity
@@ -47,6 +52,8 @@ public class ChatController {
                         .build()
         );
 
-        return new ResponseEntity<>(chatDtoConverter.convertToChatDto(chat), HttpStatus.OK);
+        user.setChat(chat);
+
+        return new ResponseEntity<>(chatDtoConverter.convertToChatDto(chat), HttpStatus.CREATED);
     }
 }

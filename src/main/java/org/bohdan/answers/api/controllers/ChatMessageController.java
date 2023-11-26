@@ -1,25 +1,31 @@
 package org.bohdan.answers.api.controllers;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bohdan.answers.api.controllers.helpers.ControllerHelper;
 import org.bohdan.answers.api.dto.ChatMessageDto;
+import org.bohdan.answers.api.dto.ChatMessagesDto;
 import org.bohdan.answers.api.dto.OpenaiRequestDto;
 import org.bohdan.answers.api.dto.OpenaiResponseDto;
 import org.bohdan.answers.api.dto.converters.ChatMessageDtoConverter;
 import org.bohdan.answers.api.exceptions.BadRequestException;
+import org.bohdan.answers.api.exceptions.NotFoundException;
+import org.bohdan.answers.api.security.UserEntityDetails;
 import org.bohdan.answers.store.entities.ChatEntity;
 import org.bohdan.answers.store.entities.ChatMessageEntity;
 import org.bohdan.answers.store.repositories.ChatMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Transactional
@@ -41,10 +47,14 @@ public class ChatMessageController {
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    private final static String SEND_MESSAGE = "/{chat_id}/chat_messages";
+    private static final String SEND_MESSAGE = "/{chat_id}/chat_messages";
+    private static final String FETCH_MESSAGES = "/{chat_id}/chat_messages";
 
     @Autowired
-    public ChatMessageController(ChatMessageRepository chatMessageRepository, ControllerHelper controllerHelper, ChatMessageDtoConverter chatMessageDtoConverter, RestTemplate restTemplate) {
+    public ChatMessageController(ChatMessageRepository chatMessageRepository,
+                                 ControllerHelper controllerHelper,
+                                 ChatMessageDtoConverter chatMessageDtoConverter,
+                                 RestTemplate restTemplate) {
         this.chatMessageRepository = chatMessageRepository;
         this.controllerHelper = controllerHelper;
         this.chatMessageDtoConverter = chatMessageDtoConverter;
@@ -56,7 +66,10 @@ public class ChatMessageController {
             @RequestParam(name = "user_question") String userQuestion,
             @PathVariable(name = "chat_id") Long chatId
     ) {
+
         ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
+
+        checkUserAccessToChatPermission(chatId, chat);
 
         OpenaiRequestDto request = new OpenaiRequestDto(model, userQuestion);
 
@@ -80,5 +93,31 @@ public class ChatMessageController {
         chat.setChatMessages(new ArrayList<>(Collections.singletonList(chatMessage)));
 
         return chatMessageDtoConverter.convertToChatMessageDto(chatMessage);
+    }
+
+    @GetMapping(FETCH_MESSAGES)
+    public ChatMessagesDto fetchMessages(@PathVariable(name = "chat_id") Long chatId) {
+
+        ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
+
+        checkUserAccessToChatPermission(chatId, chat);
+
+        return ChatMessagesDto
+                .builder()
+                .chatMessages(
+                        chatMessageRepository
+                                .streamAllByChatId(chatId)
+                                .map(chatMessageDtoConverter::convertToChatMessageDto)
+                                .collect(Collectors.toList())
+                )
+                .build();
+    }
+
+    private static void checkUserAccessToChatPermission(Long chatId, ChatEntity chat) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserEntityDetails userDetails = (UserEntityDetails) authentication.getPrincipal();
+
+        if (!Objects.equals(chat.getUser().getUsername(), userDetails.getUsername()))
+            throw new NotFoundException(String.format("Chat \"%s\" not found for current user.", chatId));
     }
 }

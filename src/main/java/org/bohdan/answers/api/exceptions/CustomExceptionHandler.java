@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.List;
+
 @Log4j2
 @RestControllerAdvice
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
@@ -26,7 +28,23 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UserNotRegisteredException.class)
     @JsonView(Views.FullErrorFields.class)
-    public ResponseEntity<ErrorDto> handleMethodArgumentNotValid(UserNotRegisteredException ex) {
+    public ResponseEntity<ErrorDto> handleUserNotRegisteredException(UserNotRegisteredException ex) {
+
+        List<String> errors = ex.getErrors();
+        
+        return getErrorDtoResponseEntity(ex, errors);
+    }
+
+    @ExceptionHandler(UserDoesNotSignInException.class)
+    @JsonView(Views.FullErrorFields.class)
+    public ResponseEntity<ErrorDto> handleUserDoesNotSignInException(UserDoesNotSignInException ex) {
+
+        List<String> errors = ex.getErrors();
+
+        return getErrorDtoResponseEntity(ex, errors);
+    }
+
+    private ResponseEntity<ErrorDto> getErrorDtoResponseEntity(Exception ex, List<String> errors) {
 
         log.error("Exception during execution of application", ex);
 
@@ -37,7 +55,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(ErrorDto
                         .builder()
                         .error(ex.getMessage())
-                        .fieldErrors(ex.getErrors())
+                        .fieldErrors(errors)
                         .timestamp(System.currentTimeMillis())
                         .build());
     }
