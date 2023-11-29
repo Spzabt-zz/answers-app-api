@@ -9,8 +9,6 @@ import lombok.experimental.FieldDefaults;
 import org.bohdan.answers.api.domain.Views;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -31,6 +29,9 @@ public class UserEntity {
     @Column(name = "email")
     @JsonView(Views.FullProfile.class)
     String email;
+
+    @Column(name = "activation_code")
+    String activationCode;
 
     @NotBlank(message = "Please, provide full name.")
     @Column(name = "full_name")

@@ -13,4 +13,6 @@ public interface UserEntityRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
 
     Stream<UserEntity> streamAllBy();
+
+    Optional<UserEntity> findByActivationCode(String code);
 }

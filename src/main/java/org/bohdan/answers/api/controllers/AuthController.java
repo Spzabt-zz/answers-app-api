@@ -6,10 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.bohdan.answers.api.dto.LoginDto;
+import org.bohdan.answers.api.dto.UserActivationDto;
 import org.bohdan.answers.api.dto.UserDto;
 import org.bohdan.answers.api.dto.converters.UserDtoConverter;
 import org.bohdan.answers.api.exceptions.UserDoesNotSignInException;
 import org.bohdan.answers.api.exceptions.UserNotRegisteredException;
+import org.bohdan.answers.api.services.MailSenderService;
 import org.bohdan.answers.api.services.RegistrationService;
 import org.bohdan.answers.api.utils.ControllerUtil;
 import org.bohdan.answers.api.validator.UserEntityValidator;
@@ -22,10 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
@@ -46,6 +45,7 @@ public class AuthController {
     //AuthenticationProvider authenticationProvider;
 
     private static final String REGISTRATION = "/auth/registration";
+    private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
 
     @PostMapping(LOGIN)
@@ -86,5 +86,20 @@ public class AuthController {
         registrationService.register(user, Role.USER);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @GetMapping(ACTIVATION)
+    public ResponseEntity<UserActivationDto> activate(@PathVariable("code") String activationCode) {
+
+        boolean isActivated = registrationService.activateUser(activationCode);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        UserActivationDto
+                                .builder()
+                                .activationStatus(isActivated)
+                                .build()
+                );
     }
 }

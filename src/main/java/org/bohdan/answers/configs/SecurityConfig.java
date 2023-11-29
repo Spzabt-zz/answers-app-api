@@ -37,7 +37,12 @@ public class SecurityConfig {
     UserEntityRepository userEntityRepository;
 
     private static final String[] SECURED_URLs = {"/api/v1/users"};
-    private static final String[] UN_SECURED_URLs = {"/api/v1/auth/login", "/api/v1/auth/registration", "/error"};
+    private static final String[] UN_SECURED_URLs = {
+            "/api/v1/auth/activate/*",
+            "/api/v1/auth/login",
+            "/api/v1/auth/registration",
+            "/error"
+    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -55,7 +60,7 @@ public class SecurityConfig {
                         )
                 )
                 .httpBasic(Customizer.withDefaults());
-                //.formLogin()
+        //.formLogin()
                 /*.logout(logout -> logout
                         .logoutUrl("/logout"));*/
         /*.formLogin((formLogin) -> formLogin
@@ -72,7 +77,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(new UserEntityDetailsService(userEntityRepository));
         authenticationProvider.setPasswordEncoder(passwordEncoder());
