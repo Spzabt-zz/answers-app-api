@@ -18,3 +18,17 @@
           show_sql: true
     flyway:
       enabled: false
+          mail:
+            host:
+            port:
+            username:
+            password:
+            properties:
+              mail:
+                transport:
+                  protocol:
+                smtp:
+                  auth:
+                  starttls:
+                    enable:
+                debug: true

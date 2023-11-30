@@ -1,10 +1,8 @@
 package org.bohdan.answers.store.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.time.Instant;
 import java.util.ArrayList;

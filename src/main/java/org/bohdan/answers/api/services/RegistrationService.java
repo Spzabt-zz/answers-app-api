@@ -4,19 +4,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
-import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.api.exceptions.NotFoundException;
 import org.bohdan.answers.store.entities.Role;
 import org.bohdan.answers.store.entities.UserEntity;
 import org.bohdan.answers.store.repositories.UserEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor

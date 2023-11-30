@@ -11,7 +11,6 @@ import org.bohdan.answers.api.dto.UserDto;
 import org.bohdan.answers.api.dto.converters.UserDtoConverter;
 import org.bohdan.answers.api.exceptions.UserDoesNotSignInException;
 import org.bohdan.answers.api.exceptions.UserNotRegisteredException;
-import org.bohdan.answers.api.services.MailSenderService;
 import org.bohdan.answers.api.services.RegistrationService;
 import org.bohdan.answers.api.utils.ControllerUtil;
 import org.bohdan.answers.api.validator.UserEntityValidator;
