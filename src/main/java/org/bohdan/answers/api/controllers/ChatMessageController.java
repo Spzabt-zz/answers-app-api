@@ -1,6 +1,7 @@
 package org.bohdan.answers.api.controllers;
 
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bohdan.answers.api.controllers.helpers.ControllerHelper;
