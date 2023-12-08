@@ -8,6 +8,7 @@ import org.bohdan.answers.api.exceptions.NotFoundException;
 import org.bohdan.answers.store.entities.Role;
 import org.bohdan.answers.store.entities.UserEntity;
 import org.bohdan.answers.store.repositories.UserEntityRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,16 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Transactional(readOnly = true)
 @Service
 public class RegistrationService {
 
-    UserEntityRepository userEntityRepository;
+    final UserEntityRepository userEntityRepository;
 
-    PasswordEncoder passwordEncoder;
+    final PasswordEncoder passwordEncoder;
 
-    MailSenderService mailSenderService;
+    final MailSenderService mailSenderService;
+
+    @Value("${spring.profile.active}")
+    private String profile;
 
     @Transactional
     public void register(UserEntity user, Role role) {
@@ -42,10 +46,12 @@ public class RegistrationService {
                         .build()
         );
 
+        String url = "dev".equals(profile) ? "http://localhost:8082" : "https://answers-ccff058443b8.herokuapp.com";
+
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Hello, %s!\n" +
-                            "Welcome to \"The Answers\" application. Please visit activation link: http://localhost:8081/api/v1/auth/activate/%s",
+                            "Welcome to \"The Answers\" application. Please visit activation link: "+ url +"/api/v1/auth/activate/%s",
                     userEntity.getUsername(),
                     userEntity.getActivationCode()
             );
