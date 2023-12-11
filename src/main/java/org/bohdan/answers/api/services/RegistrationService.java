@@ -56,6 +56,7 @@ public class RegistrationService {
                     userEntity.getActivationCode()
             );
 
+            // todo: FIX multiple emails being sent (when multiple requests are sent -> multiple transactions are started)
             mailSenderService.send(user.getEmail(), "Activation code", message);
         }
     }

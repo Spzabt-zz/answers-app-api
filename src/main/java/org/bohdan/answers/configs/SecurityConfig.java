@@ -42,7 +42,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                //.cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
                         //.requestMatchers("/admin", "/people/new", "/people/*/edit").hasRole(Role.ADMIN.toString())
@@ -53,20 +52,17 @@ public class SecurityConfig {
                                 Role.ADMIN.toString()
                         )
                 )
-                .httpBasic(Customizer.withDefaults());
-        //.formLogin()
-                /*.logout(logout -> logout
-                        .logoutUrl("/logout"));*/
-        /*.formLogin((formLogin) -> formLogin
-                        .loginPage("/auth/login")
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/api/v1/auth/login")
                         .loginProcessingUrl("/process_login")
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/auth/login?error")
                         .permitAll()
-                )*/
-                /*.logout(logout -> logout
+                )
+                .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/auth/login"));*/
+                        .logoutSuccessUrl("/auth/login"));
+
         return http.build();
     }
 
