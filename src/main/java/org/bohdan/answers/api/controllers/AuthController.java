@@ -5,12 +5,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.bohdan.answers.api.dto.JWTDto;
 import org.bohdan.answers.api.dto.LoginDto;
 import org.bohdan.answers.api.dto.UserActivationDto;
 import org.bohdan.answers.api.dto.UserDto;
 import org.bohdan.answers.api.dto.converters.UserDtoConverter;
+import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.api.exceptions.UserDoesNotSignInException;
 import org.bohdan.answers.api.exceptions.UserNotRegisteredException;
+import org.bohdan.answers.api.security.JWTUtil;
 import org.bohdan.answers.api.services.RegistrationService;
 import org.bohdan.answers.api.utils.ControllerUtil;
 import org.bohdan.answers.api.validator.UserEntityValidator;
@@ -19,6 +22,7 @@ import org.bohdan.answers.store.entities.UserEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,14 +45,15 @@ public class AuthController {
     UserDtoConverter userDtoConverter;
 
     AuthenticationManager authenticationManager;
-    //AuthenticationProvider authenticationProvider;
+
+    JWTUtil jwtUtil;
 
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
 
     @PostMapping(LOGIN)
-    public ResponseEntity<String> authenticateUser(
+    public ResponseEntity<JWTDto> performLogin(
             @RequestBody @Valid LoginDto loginDto,
             BindingResult bindingResult
     ) {
@@ -59,15 +64,26 @@ public class AuthController {
             throw new UserDoesNotSignInException(errors, "User not registered, because of fields errors: " + errors);
         }
 
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (BadCredentialsException ex) {
+            throw new BadRequestException("Incorrect credentials!");
+        }
 
-        return new ResponseEntity<>("User login successfully!...", HttpStatus.OK);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        JWTDto
+                                .builder()
+                                .jwtToken(jwtUtil.generateToken(loginDto.getUsername()))
+                                .build()
+                );
     }
 
     @PostMapping(REGISTRATION)
-    public ResponseEntity<HttpStatus> performRegistration(
+    public ResponseEntity<JWTDto> performRegistration(
             @RequestBody @Valid UserDto userDto,
             BindingResult bindingResult
     ) {
@@ -84,7 +100,14 @@ public class AuthController {
 
         registrationService.register(user, Role.USER);
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        JWTDto
+                                .builder()
+                                .jwtToken(jwtUtil.generateToken(user.getUsername()))
+                                .build()
+                );
     }
 
     @GetMapping(ACTIVATION)

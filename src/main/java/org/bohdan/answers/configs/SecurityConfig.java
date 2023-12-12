@@ -17,9 +17,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -29,6 +31,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     UserEntityRepository userEntityRepository;
+
+    JWTFilter jwtFilter;
 
     private static final String[] SECURED_URLs = {"/api/v1/users"};
     private static final String[] UN_SECURED_URLs = {
@@ -61,17 +65,11 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/auth/login"));
+                        .logoutSuccessUrl("/auth/login"))
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        return http.build();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(new UserEntityDetailsService(userEntityRepository));
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
+        return http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 
     @Bean
