@@ -9,9 +9,11 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.api.security.JWTUtil;
 import org.bohdan.answers.api.services.UserEntityDetailsService;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +28,7 @@ import java.io.IOException;
 public class JWTFilter extends OncePerRequestFilter {
 
     JWTUtil jwtUtil;
+
     UserEntityDetailsService userEntityDetailsService;
 
     @Override
@@ -54,10 +57,16 @@ public class JWTFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     }
                 } catch (JWTVerificationException ex) {
+                    // todo: see auth controller -> login endpoint
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                             "Invalid JWT Token");
+                    //throw new BadRequestException("Invalid JWT Token");
                 }
             }
+        } else {
+            // todo: fix -> this and upper, returns internal server error status code instead of 400
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid Header");
         }
 
         filterChain.doFilter(request, response);

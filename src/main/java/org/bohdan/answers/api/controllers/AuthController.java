@@ -65,9 +65,9 @@ public class AuthController {
         }
 
         try {
-            Authentication authentication = authenticationManager
+            // todo: handle exception in JWTFilter if token incorrect, because endpoint creates new JWTToken if previous was incorrect
+            authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (BadCredentialsException ex) {
             throw new BadRequestException("Incorrect credentials!");
         }

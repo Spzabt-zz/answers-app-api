@@ -47,6 +47,7 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
                         //.requestMatchers("/admin", "/people/new", "/people/*/edit").hasRole(Role.ADMIN.toString())
                         .requestMatchers(UN_SECURED_URLs).permitAll()
@@ -59,7 +60,7 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin
                         .loginPage("/api/v1/auth/login")
                         .loginProcessingUrl("/process_login")
-                        .defaultSuccessUrl("/", true)
+                        .defaultSuccessUrl("/api/v1", true)
                         .failureUrl("/auth/login?error")
                         .permitAll()
                 )
@@ -69,7 +70,7 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        return http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
+        return http.build();
     }
 
     @Bean
