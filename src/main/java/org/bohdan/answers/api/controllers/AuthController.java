@@ -127,7 +127,7 @@ public class AuthController {
                                 .builder()
                                 .id(user.getId())
                                 .username(user.getUsername())
-                                .role(user.getRole().name())
+                                .role(Role.USER.name())
                                 .jwtToken(jwtUtil.generateToken(user.getUsername()))
                                 .build()
                 );
