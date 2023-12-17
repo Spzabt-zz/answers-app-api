@@ -14,7 +14,9 @@ import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.api.exceptions.UserDoesNotSignInException;
 import org.bohdan.answers.api.exceptions.UserNotRegisteredException;
 import org.bohdan.answers.api.security.JWTUtil;
+import org.bohdan.answers.api.security.UserEntityDetails;
 import org.bohdan.answers.api.services.RegistrationService;
+import org.bohdan.answers.api.services.UserEntityDetailsService;
 import org.bohdan.answers.api.utils.ControllerUtil;
 import org.bohdan.answers.api.validator.UserEntityValidator;
 import org.bohdan.answers.store.entities.Role;
@@ -26,10 +28,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -48,6 +52,8 @@ public class AuthController {
 
     JWTUtil jwtUtil;
 
+    UserEntityDetailsService userEntityDetailsService;
+
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
@@ -64,10 +70,14 @@ public class AuthController {
             throw new UserDoesNotSignInException(errors, "User not registered, because of fields errors: " + errors);
         }
 
+        UserEntityDetails userDetails;
         try {
             // todo: handle exception in JWTFilter if token incorrect, because endpoint creates new JWTToken if previous was incorrect
             authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+
+            userDetails = (UserEntityDetails) userEntityDetailsService.loadUserByUsername(loginDto.getUsername());
+
         } catch (BadCredentialsException ex) {
             throw new BadRequestException("Incorrect credentials!");
         }
@@ -77,6 +87,13 @@ public class AuthController {
                 .body(
                         JWTDto
                                 .builder()
+                                .id(userDetails.getUserEntity().getId())
+                                .username(userDetails.getUsername())
+                                .role(userDetails.getAuthorities()
+                                        .stream()
+                                        .map(role -> role.getAuthority())
+                                        .reduce((acc, role) -> acc + ", " + role)
+                                        .orElseGet(() -> Role.USER.name()))
                                 .jwtToken(jwtUtil.generateToken(loginDto.getUsername()))
                                 .build()
                 );
@@ -105,6 +122,9 @@ public class AuthController {
                 .body(
                         JWTDto
                                 .builder()
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .role(user.getRole().name())
                                 .jwtToken(jwtUtil.generateToken(user.getUsername()))
                                 .build()
                 );
