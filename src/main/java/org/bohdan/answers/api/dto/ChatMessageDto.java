@@ -11,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessageDto {
 
+    Long id;
+
     @NotBlank(message = "Please, enter your question.")
     String userQuestion;
 
