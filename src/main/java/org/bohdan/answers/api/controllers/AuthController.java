@@ -33,6 +33,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -77,7 +78,9 @@ public class AuthController {
                     .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
 
             userDetails = (UserEntityDetails) userEntityDetailsService.loadUserByUsername(loginDto.getUsername());
-
+            if (Objects.nonNull(userDetails.getUserEntity().getActivationCode())) {
+                throw new BadRequestException("Activate your account!");
+            }
         } catch (BadCredentialsException ex) {
             throw new BadRequestException("Incorrect credentials!");
         }
