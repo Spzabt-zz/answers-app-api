@@ -12,5 +12,7 @@ import java.time.Instant;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatDto {
 
+    Long id;
+
     Instant createdAt;
 }
