@@ -1,14 +1,12 @@
 package org.bohdan.answers.api.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
-import org.bohdan.answers.api.dto.JWTDto;
-import org.bohdan.answers.api.dto.LoginDto;
-import org.bohdan.answers.api.dto.UserActivationDto;
-import org.bohdan.answers.api.dto.UserDto;
+import org.bohdan.answers.api.dto.*;
 import org.bohdan.answers.api.dto.converters.UserDtoConverter;
 import org.bohdan.answers.api.exceptions.BadRequestException;
 import org.bohdan.answers.api.exceptions.UserDoesNotSignInException;
@@ -58,6 +56,7 @@ public class AuthController {
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
+    private static final String CHECK_TOKEN = "/auth/check-token";
 
     @PostMapping(LOGIN)
     public ResponseEntity<JWTDto> performLogin(
@@ -144,6 +143,28 @@ public class AuthController {
                         UserActivationDto
                                 .builder()
                                 .activationStatus(isActivated)
+                                .build()
+                );
+    }
+
+    @GetMapping(CHECK_TOKEN)
+    public ResponseEntity<JWTExpiryValidationDto> checkJwtToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        boolean isExpired;
+        if (authHeader != null && !authHeader.isBlank() && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.split(" ")[1];
+            isExpired = jwtUtil.isJWTExpired(jwt);
+        } else {
+            throw new BadRequestException("Invalid header!");
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        JWTExpiryValidationDto
+                                .builder()
+                                .isJwtTokenExpired(isExpired)
                                 .build()
                 );
     }

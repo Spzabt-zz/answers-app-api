@@ -31,12 +31,23 @@ public class JWTUtil {
     }
 
     public String validateTokenAndRetrieveClaim(String token) throws JWTVerificationException {
+        DecodedJWT jwt = getDecodedJWT(token);
+
+        return jwt.getClaim("username").asString();
+    }
+
+    private DecodedJWT getDecodedJWT(String token) {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                 .withSubject("User details")
                 .withIssuer("Answers app")
                 .build();
 
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt.getClaim("username").asString();
+        return verifier.verify(token);
+    }
+
+    public boolean isJWTExpired(String token) {
+        DecodedJWT decodedJWT = JWT.decode(token);
+        Date expiresAt = decodedJWT.getExpiresAt();
+        return expiresAt.before(new Date());
     }
 }
