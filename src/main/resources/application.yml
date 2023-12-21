@@ -16,11 +16,12 @@
       properties:
         hibernate:
           dialect: org.hibernate.dialect.PostgreSQLDialect
-          show_sql: true
+          show_sql: false
       hibernate:
-        ddl-auto: update
+        ddl-auto: validate
     flyway:
-      enabled: false
+      enabled: true
+      baseline-on-migrate: true
     mail:
       host: smtp.gmail.com
       port: 587
