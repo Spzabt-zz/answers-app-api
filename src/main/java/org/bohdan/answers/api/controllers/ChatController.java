@@ -32,7 +32,7 @@ public class ChatController {
     public static final String CREATE_OR_UPDATE_CHAT = "/api/v1/chats";
     public static final String CREATE_CHAT = "/chats";
     public static final String DELETE_CHAT = "/api/v1/chats/{chat_id}";
-    public static final String GET_CHAT = "/api/v1/chats/{chat_id}";
+    public static final String GET_CHAT = "/chats/{chat_id}";
 
     @PutMapping(CREATE_CHAT)
     public ResponseEntity<ChatDto> createChat(@RequestParam(name = "user_id") Long userId) {
