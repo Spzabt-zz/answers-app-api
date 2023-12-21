@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -39,6 +40,7 @@ public class ChatController {
     public static final String CREATE_CHAT = "/chats";
     public static final String DELETE_CHAT = "/api/v1/chats/{chat_id}";
     public static final String GET_CHAT = "/chats/{chat_id}";
+    public static final String GET_CHAT_BY_USER_ID = "/chats/{user_id}";
 
     @PutMapping(CREATE_CHAT)
     public ResponseEntity<ChatDto> createChat(@RequestParam(name = "user_id") Long userId) {
@@ -60,12 +62,34 @@ public class ChatController {
         return new ResponseEntity<>(chatDtoConverter.convertToChatDto(chat), HttpStatus.CREATED);
     }
 
-    @GetMapping(GET_CHAT)
-    public ResponseEntity<ChatDto> getChatById(@PathVariable(name = "chat_id") Long chatId) {
+//    @GetMapping(GET_CHAT)
+//    public ResponseEntity<ChatDto> getChatById(@PathVariable(name = "chat_id") Long chatId) {
+//
+//        ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
+//
+//        checkUserAccessToChatPermission(chatId, chat);
+//
+//        return ResponseEntity
+//                .status(HttpStatus.OK)
+//                .body(
+//                        ChatDto
+//                                .builder()
+//                                .id(chat.getId())
+//                                .createdAt(chat.getCreatedAt())
+//                                .build()
+//                );
+//    }
 
-        ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
+    @GetMapping(GET_CHAT_BY_USER_ID)
+    public ResponseEntity<ChatDto> getChatByUserId(@PathVariable(name = "user_id") Long userId) {
 
-        checkUserAccessToChatPermission(chatId, chat);
+        ChatEntity chat = chatRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Chat by user \"%s\", not found", userId)
+                ));
+
+        checkUserAccessToChatPermission(chat.getId(), chat);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
