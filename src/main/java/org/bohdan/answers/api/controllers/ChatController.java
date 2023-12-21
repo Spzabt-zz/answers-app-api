@@ -7,13 +7,19 @@ import org.bohdan.answers.api.controllers.helpers.ControllerHelper;
 import org.bohdan.answers.api.dto.ChatDto;
 import org.bohdan.answers.api.dto.converters.ChatDtoConverter;
 import org.bohdan.answers.api.exceptions.BadRequestException;
+import org.bohdan.answers.api.exceptions.NotFoundException;
+import org.bohdan.answers.api.security.UserEntityDetails;
 import org.bohdan.answers.store.entities.ChatEntity;
 import org.bohdan.answers.store.entities.UserEntity;
 import org.bohdan.answers.store.repositories.ChatRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -59,6 +65,8 @@ public class ChatController {
 
         ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
 
+        checkUserAccessToChatPermission(chatId, chat);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -68,5 +76,13 @@ public class ChatController {
                                 .createdAt(chat.getCreatedAt())
                                 .build()
                 );
+    }
+
+    private static void checkUserAccessToChatPermission(Long chatId, ChatEntity chat) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserEntityDetails userDetails = (UserEntityDetails) authentication.getPrincipal();
+
+        if (!Objects.equals(chat.getUser().getUsername(), userDetails.getUsername()))
+            throw new NotFoundException(String.format("Chat \"%s\" not found for current user.", chatId));
     }
 }
