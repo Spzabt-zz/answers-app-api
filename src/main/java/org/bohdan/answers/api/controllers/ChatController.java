@@ -13,10 +13,7 @@ import org.bohdan.answers.store.repositories.ChatRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -55,5 +52,21 @@ public class ChatController {
         user.setChat(chat);
 
         return new ResponseEntity<>(chatDtoConverter.convertToChatDto(chat), HttpStatus.CREATED);
+    }
+
+    @GetMapping(GET_CHAT)
+    public ResponseEntity<ChatDto> getChatById(@PathVariable(name = "chat_id") Long chatId) {
+
+        ChatEntity chat = controllerHelper.getChatOrThrowException(chatId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ChatDto
+                                .builder()
+                                .id(chat.getId())
+                                .createdAt(chat.getCreatedAt())
+                                .build()
+                );
     }
 }
