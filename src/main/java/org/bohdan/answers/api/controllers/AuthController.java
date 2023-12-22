@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.bohdan.answers.api.controllers.helpers.ControllerHelper;
 import org.bohdan.answers.api.dto.*;
 import org.bohdan.answers.api.dto.converters.UserDtoConverter;
 import org.bohdan.answers.api.exceptions.BadRequestException;
@@ -53,10 +54,13 @@ public class AuthController {
 
     UserEntityDetailsService userEntityDetailsService;
 
+    ControllerHelper controllerHelper;
+
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
     private static final String CHECK_TOKEN = "/auth/check-token";
+    private static final String CHECK_USER_ACTIVATION = "/auth/check-user-activation";
 
     @PostMapping(LOGIN)
     public ResponseEntity<JWTDto> performLogin(
@@ -165,6 +169,21 @@ public class AuthController {
                         JWTExpiryValidationDto
                                 .builder()
                                 .isJwtTokenExpired(isExpired)
+                                .build()
+                );
+    }
+
+    @GetMapping(CHECK_USER_ACTIVATION)
+    public ResponseEntity<UserActivationDto> checkUserActivation(@RequestParam(name = "user_id") Long userId) {
+
+        UserEntity user = controllerHelper.getUserOrThrowException(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        UserActivationDto
+                                .builder()
+                                .activationStatus(!Objects.nonNull(user.getActivationCode()))
                                 .build()
                 );
     }
