@@ -28,6 +28,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,6 +60,7 @@ public class AuthController {
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
+    private static final String LOGOUT = "/auth/logout";
     private static final String CHECK_TOKEN = "/auth/check-token";
     private static final String CHECK_USER_ACTIVATION = "/auth/check-user-activation";
 
@@ -186,5 +188,24 @@ public class AuthController {
                                 .activationStatus(!Objects.nonNull(user.getActivationCode()))
                                 .build()
                 );
+    }
+
+    @PostMapping(LOGOUT)
+    public ResponseEntity<HttpStatus> logout(@RequestHeader("Authorization") String token) {
+        String jwt = extractToken(token);
+
+        // todo: implement jwt blacklist
+        if (jwt == null)
+            throw new BadRequestException("Blank JWT");
+        //tokenBlacklistService.addToBlacklist(jwt);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private String extractToken(String header) {
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
     }
 }
