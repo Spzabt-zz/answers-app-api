@@ -31,7 +31,7 @@ public class RegistrationService {
     private String profile;
 
     @Transactional
-    public void register(UserEntity user, Role role) {
+    public UserEntity register(UserEntity user, Role role) {
 
         UserEntity userEntity = userEntityRepository.save(
                 UserEntity
@@ -59,6 +59,8 @@ public class RegistrationService {
             // todo: FIX multiple emails being sent (when multiple requests are sent -> multiple transactions are started)
             mailSenderService.send(user.getEmail(), "Activation code", message);
         }
+
+        return userEntity;
     }
 
     @Transactional

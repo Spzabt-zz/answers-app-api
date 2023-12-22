@@ -117,7 +117,7 @@ public class AuthController {
             throw new UserNotRegisteredException(errors, "User not registered, because of fields errors: " + errors);
         }
 
-        registrationService.register(user, Role.USER);
+        user = registrationService.register(user, Role.USER);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -126,7 +126,7 @@ public class AuthController {
                                 .builder()
                                 .id(user.getId())
                                 .username(user.getUsername())
-                                .role(Role.USER.name())
+                                .role(user.getRole().name())
                                 .jwtToken(jwtUtil.generateToken(user.getUsername()))
                                 .build()
                 );
