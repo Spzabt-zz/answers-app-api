@@ -40,7 +40,7 @@ public class RegistrationService {
                         .activationCode(UUID.randomUUID().toString())
                         .fullName(user.getFullName())
                         .username(user.getUsername())
-                        .phoneNumber(user.getPhoneNumber())
+                        .phoneNumber(user.getPhoneNumber().replaceAll(" ", ""))
                         .password(passwordEncoder.encode(user.getPassword()))
                         .role(role)
                         .build()

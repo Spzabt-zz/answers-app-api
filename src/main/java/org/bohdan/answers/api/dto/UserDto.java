@@ -25,14 +25,13 @@ public class UserDto {
     String username;
 
     @NotBlank(message = "Please, provide phone number.")
-    @Min(value = 5, message = "Invalid phone number")
-    @Max(value = 15, message = "Invalid phone number")
-    @Pattern(regexp = "[0-9]+",
+    @Size(min = 5, max = 15, message = "Phone number should be between 5 and 15 characters")
+    @Pattern(regexp = "^\\+[0-9 ]+$",
             message = "Invalid phone number")
     String phoneNumber;
 
     @NotBlank(message = "Please, enter password.")
-    @Min(value = 8, message = "Min password length is 8")
+    @Size(min = 8, max = 15, message = "Password should be between 8 and 15 characters")
     String password;
 
     @NotBlank(message = "Please, repeat password.")
