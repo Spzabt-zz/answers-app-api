@@ -23,6 +23,7 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    @JsonView(Views.Id.class)
     Long id;
 
     @Email(message = "Please, provide a valid email.")
