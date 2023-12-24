@@ -64,6 +64,30 @@ public class RegistrationService {
     }
 
     @Transactional
+    public UserEntity resetPassword(UserEntity user, boolean isEmailChanged) {
+
+        UserEntity userEntity = userEntityRepository.save(user);
+
+        if (isEmailChanged) {
+            String url = "dev".equals(profile) ? "http://localhost:8082" : "https://answers-ccff058443b8.herokuapp.com";
+
+            if (!StringUtils.isEmpty(user.getEmail())) {
+                String message = String.format(
+                        "Hello, %s!\n" +
+                                "Welcome to \"The Answers\" application. Please visit activation link: " + url + "/api/v1/auth/activate/%s",
+                        userEntity.getUsername(),
+                        userEntity.getActivationCode()
+                );
+
+                // todo: FIX multiple emails being sent (when multiple requests are sent -> multiple transactions are started)
+                mailSenderService.send(user.getEmail(), "Activation code", message);
+            }
+        }
+
+        return userEntity;
+    }
+
+    @Transactional
     public boolean activateUser(String code) {
         UserEntity user = userEntityRepository.findByActivationCode(code)
                 .orElseThrow(() ->

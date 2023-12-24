@@ -35,6 +35,20 @@ public class ControllerHelper {
                 );
     }
 
+    public UserEntity getUserByEmailOrThrowException(String email) {
+
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                String.format(
+                                        "User with \"%s\" doesn't exist.",
+                                        email
+                                )
+                        )
+                );
+    }
+
     public ChatEntity getChatOrThrowException(Long chatId) {
 
         return chatRepository

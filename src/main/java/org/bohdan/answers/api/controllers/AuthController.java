@@ -20,6 +20,7 @@ import org.bohdan.answers.api.utils.ControllerUtil;
 import org.bohdan.answers.api.validator.UserEntityValidator;
 import org.bohdan.answers.store.entities.Role;
 import org.bohdan.answers.store.entities.UserEntity;
+import org.bohdan.answers.store.repositories.UserEntityRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -57,9 +59,11 @@ public class AuthController {
 
     ControllerHelper controllerHelper;
 
+
     private static final String REGISTRATION = "/auth/registration";
     private static final String ACTIVATION = "/auth/activate/{code}";
     private static final String LOGIN = "/auth/login";
+    private static final String REST_PASSWORD = "/auth/reset-password";
     private static final String LOGOUT = "/auth/logout";
     private static final String CHECK_TOKEN = "/auth/check-token";
     private static final String CHECK_USER_ACTIVATION = "/auth/check-user-activation";
@@ -70,6 +74,7 @@ public class AuthController {
             BindingResult bindingResult
     ) {
 
+        // TODO: implement remember me
         if (bindingResult.hasErrors()) {
             ArrayList<String> errors = ControllerUtil.bindErrors(bindingResult);
 
@@ -78,7 +83,6 @@ public class AuthController {
 
         UserEntityDetails userDetails;
         try {
-            // todo: handle exception in JWTFilter if token incorrect, because endpoint creates new JWTToken if previous was incorrect
             authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
 
@@ -200,6 +204,44 @@ public class AuthController {
         //tokenBlacklistService.addToBlacklist(jwt);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping(REST_PASSWORD)
+    public ResponseEntity<JWTDto> resetPassword(@RequestParam("email") String email,
+                                                @RequestParam("old_password") String password,
+                                                @RequestParam("new_password") String newPassword
+    ) {
+        UserEntity user = controllerHelper.getUserByEmailOrThrowException(email);
+        String userEmail = user.getEmail();
+
+        boolean isEmailChanged = (email != null && !email.equals(userEmail)) ||
+                (userEmail != null && !userEmail.equals(email));
+
+        if (isEmailChanged) {
+            user.setEmail(email);
+
+            if (!StringUtils.hasText(email)) {
+                user.setActivationCode(UUID.randomUUID().toString());
+            }
+        }
+
+        if (!StringUtils.hasText(password)) {
+            user.setPassword(password);
+        }
+
+        registrationService.resetPassword(user, isEmailChanged);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        JWTDto
+                                .builder()
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .role(user.getRole().name())
+                                .jwtToken(jwtUtil.generateToken(user.getUsername()))
+                                .build()
+                );
     }
 
     private String extractToken(String header) {
